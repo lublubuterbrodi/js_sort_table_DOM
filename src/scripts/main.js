@@ -2,33 +2,35 @@
 
 // write code here
 document.addEventListener('DOMContentLoaded', () => {
-  const headers = document.querySelectorAll('th');
+  const tableHeaders = document.querySelectorAll('th');
   const tableBody = document.querySelector('tbody');
 
-  const rows = Array.from(tableBody.querySelectorAll('tr'));
+  const tableRows = Array.from(tableBody.querySelectorAll('tr'));
 
-  headers.forEach((header, index) => {
+  tableHeaders.forEach((header, columnIndex) => {
     header.addEventListener('click', () => {
-      const sortedRows = [...rows].sort((a, b) => {
-        const aText = a.cells[index].textContent.trim();
-        const bText = b.cells[index].textContent.trim();
+      const sortedRows = tableRows
+        .map((row) => {
+          const cellText = row.cells[columnIndex].textContent.trim();
+          const numericValue = parseFloat(cellText.replace(/[^0-9.-]+/g, ''));
 
-        if (
-          !isNaN(parseFloat(aText.replace(/[^0-9.-]+/g, ''))) &&
-          !isNaN(parseFloat(bText.replace(/[^0-9.-]+/g, '')))
-        ) {
-          const aValue = parseFloat(aText.replace(/[^0-9.-]+/g, ''));
-          const bValue = parseFloat(bText.replace(/[^0-9.-]+/g, ''));
+          return { row, cellText, numericValue };
+        })
+        .sort((a, b) => {
+          if (!isNaN(a.numericValue) && !isNaN(b.numericValue)) {
+            return a.numericValue - b.numericValue;
+          } else {
+            return a.cellText.localeCompare(b.cellText);
+          }
+        })
+        .map((item) => item.row);
 
-          return aValue - bValue;
-        } else {
-          return aText.localeCompare(bText);
-        }
-      });
+      const fragment = document.createDocumentFragment();
+
+      sortedRows.forEach((row) => fragment.appendChild(row));
 
       tableBody.innerHTML = '';
-
-      sortedRows.forEach((row) => tableBody.appendChild(row));
+      tableBody.appendChild(fragment);
     });
   });
 });
